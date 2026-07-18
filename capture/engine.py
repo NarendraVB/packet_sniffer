@@ -1,23 +1,25 @@
+from abc import ABC, abstractmethod
 from typing import Iterator
 
 
-class CaptureEngine:
+class CaptureEngine(ABC):
     """
-    Responsible only for capturing packets.
-
-    It does NOT:
-    - Parse protocols
-    - Print output
-    - Detect attacks
+    Abstract base class for all packet capture engines.
     """
 
-    def __init__(self):
-        pass
-
+    @abstractmethod
     def start(self) -> Iterator[bytes]:
         """
         Start capturing packets.
 
-        Later this will yield raw packet bytes.
+        Yields:
+            Raw packet bytes.
         """
-        raise NotImplementedError("Packet capture not implemented yet.")
+        pass
+
+    @abstractmethod
+    def stop(self) -> None:
+        """
+        Stop packet capture.
+        """
+        pass
