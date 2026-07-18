@@ -1,0 +1,5 @@
+def mac_address(raw: bytes) -> str:
+    return ":".join(
+        f"{byte:02X}"
+        for byte in raw
+    )
