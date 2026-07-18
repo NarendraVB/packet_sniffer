@@ -1,15 +1,35 @@
-from capture.engine import CaptureEngine
+from capture.windows_capture import WindowsCaptureEngine
 
+from dispatcher.protocol_dispatcher import ProtocolDispatcher
+
+from protocols.ethernet import EthernetParser
 
 def main():
-    engine = CaptureEngine()
+    ethernet = EthernetParser()
+
+    dispatcher = ProtocolDispatcher()
+
+    capture = WindowsCaptureEngine()
 
     try:
-        for packet in engine.start():
-            print(packet)
+        for raw_packet in capture.start():
 
-    except NotImplementedError as error:
-        print(error)
+            ethernet_frame = ethernet.parse(raw_packet)
+
+            network_packet = dispatcher.dispatch_ethernet(
+                ethernet_frame
+            )
+
+            if network_packet is None:
+                continue
+
+            print(network_packet)
+
+    except KeyboardInterrupt:
+
+        capture.stop()
+
+        print("\nCapture stopped.")
 
 
 if __name__ == "__main__":
