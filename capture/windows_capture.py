@@ -1,4 +1,4 @@
-from queue import Queue
+from queue import Queue, Full, Empty
 from threading import Thread
 from typing import Iterator
 
@@ -13,16 +13,22 @@ class WindowsCaptureEngine(CaptureEngine):
     """
 
     def __init__(self):
+        self._captured_packets = 0
+        self._dropped_packets = 0
 
         self._running = False
 
-        self._queue = Queue()
+        self._queue = Queue(maxsize=1000)
 
         self._capture_thread = None
 
     def _packet_handler(self, packet):
 
-        self._queue.put(bytes(packet))
+        try:
+            self._queue.put_nowait(bytes(packet))
+            self._captured_packets += 1
+        except Full:
+            self._dropped_packets += 1
 
     def _capture(self):
 
@@ -30,6 +36,7 @@ class WindowsCaptureEngine(CaptureEngine):
             prn=self._packet_handler,
             store=False
         )
+
 
     def start(self) -> Iterator[bytes]:
         ""
@@ -40,7 +47,25 @@ class WindowsCaptureEngine(CaptureEngine):
             target=self._capture,
             daemon=True
         )
+
         self._capture_thread.start()
+
+        while self._running:
+            try:
+                packet = self._queue.get(timeout=1)
+                yield packet
+
+            except Empty:
+                continue
+
 
     def stop(self):
         self._running = False
+
+    def statistics(self):
+
+        return {
+            "captured": self._captured_packets,
+            "dropped": self._dropped_packets,
+            "queue_size": self._queue.qsize(),
+        }
