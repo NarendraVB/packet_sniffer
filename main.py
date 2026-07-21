@@ -4,12 +4,16 @@ from dispatcher.protocol_dispatcher import ProtocolDispatcher
 
 from protocols.ethernet import EthernetParser
 
+from output.formatter import PacketFormatter
+
 def main():
     ethernet = EthernetParser()
 
     dispatcher = ProtocolDispatcher()
 
     capture = WindowsCaptureEngine()
+
+    formatter = PacketFormatter()
 
     try:
         for raw_packet in capture.start():
@@ -23,7 +27,7 @@ def main():
             if network_packet is None:
                 continue
 
-            print(network_packet)
+            print(formatter.format(network_packet))
 
     except KeyboardInterrupt:
 
