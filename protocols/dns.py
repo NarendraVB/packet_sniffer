@@ -12,7 +12,12 @@ class DNSParser:
         while True:
 
             length = data[offset]
-
+            if (length & 0xC0) == 0xC0:
+                pointer = struct.unpack('!H', data[offset:offset + 2])[0] & 0x3FFF
+                pointed_name, _ = self._read_domain_name(data, pointer)
+                labels.append(pointed_name)
+                return ".".join(labels), offset + 2
+                break
             if length == 0:
                 offset += 1
                 break
@@ -52,4 +57,5 @@ class DNSParser:
             query_name=query_name,
             query_type=query_type,
             answer_count=answers
+
         )

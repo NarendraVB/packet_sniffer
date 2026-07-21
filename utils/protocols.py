@@ -23,9 +23,27 @@ COMMON_PORTS = {
     3389: "RDP",
     5432: "PostgreSQL",
 }
-
+DNS_RECORD_TYPES = {
+    1: "A",
+    2: "NS",
+    5: "CNAME",
+    6: "SOA",
+    12: "PTR",
+    15: "MX",
+    16: "TXT",
+    28: "AAAA",
+    33: "SRV",
+    41: "OPT",
+    65: "HTTPS",
+}
 def protocol_name(protocol_number):
     return IP_PROTOCOLS.get(protocol_number, "Unknown")
 
 def service_name(port):
     return COMMON_PORTS.get(port, "Ephemeral")
+
+def dns_record_name(record_type):
+    return DNS_RECORD_TYPES.get(
+        record_type,
+        f"Unknown ({record_type})"
+    )

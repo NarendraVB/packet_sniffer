@@ -2,7 +2,7 @@ from models.ipv4 import IPv4Packet
 from models.tcp import TCPPacket
 from models.udp import UDPPacket
 from models.dns import DNSPacket
-from utils.protocols import protocol_name, service_name
+from utils.protocols import protocol_name, service_name, dns_record_name
 
 
 class PacketFormatter:
@@ -120,6 +120,6 @@ class PacketFormatter:
             f"[DNS {packet_type}]\n"
             f"Transaction ID : 0x{packet.transaction_id:04X}\n"
             f"Domain         : {packet.query_name}\n"
-            f"Query Type     : {packet.query_type}\n"
+            f"Query Type     : {dns_record_name(packet.query_type)}\n"
             f"Answers        : {packet.answer_count}\n"
         )
