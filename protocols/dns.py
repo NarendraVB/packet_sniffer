@@ -1,6 +1,6 @@
 import struct
-
-from models.dns import DNSPacket
+import socket
+from models.dns import DNSAnswer, DNSPacket
 
 
 class DNSParser:
@@ -37,7 +37,7 @@ class DNSParser:
         if len(data) < 12:
             raise ValueError("DNS packet too short")
 
-        transaction_id, flags, questions, answers, authority, additional = struct.unpack(
+        transaction_id, flags, questions, answer_count, authority, additional = struct.unpack(
             "!HHHHHH",
             data[:12]
         )
@@ -51,11 +51,43 @@ class DNSParser:
             data[offset:offset + 2]
         )[0]
 
+        offset += 2
+        query_class = struct.unpack(
+                "!H",
+                data[offset:offset + 2]
+            )[0]
+
+        offset += 2
+        answers = []
+        for _ in range(answer_count):
+            name, offset = self._read_domain_name(data, offset)
+            record_type,record_class, ttl, data_length = struct.unpack(
+                "!HHIH",
+                data[offset:offset + 10]
+            )
+            offset += 10
+            answer_data = data[offset:offset + data_length]
+            offset += data_length
+
+            if record_type == 1:  # A record
+                decoded=socket.inet_ntoa(answer_data)
+            elif record_type == 28:  # AAAA record
+                decoded=socket.inet_ntop(socket.AF_INET6, answer_data)
+            else:
+                decoded=answer_data.hex()
+                
+            answers.append(DNSAnswer(
+                name=name,
+                record_type=record_type,
+                ttl=ttl,
+                data=decoded
+                
+            ))
         return DNSPacket(
             transaction_id=transaction_id,
             is_response=is_response,
             query_name=query_name,
             query_type=query_type,
-            answer_count=answers
-
+            answer_count=len(answers),
+            answers=answers
         )

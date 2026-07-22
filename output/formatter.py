@@ -110,16 +110,30 @@ class PacketFormatter:
    
           
     def _format_dns(self, packet):
-        packet_type = (
-        "Response"
-        if packet.is_response
-        else "Query"
-    )
+       lines = []
 
-        return (
-            f"[DNS {packet_type}]\n"
-            f"Transaction ID : 0x{packet.transaction_id:04X}\n"
-            f"Domain         : {packet.query_name}\n"
-            f"Query Type     : {dns_record_name(packet.query_type)}\n"
-            f"Answers        : {packet.answer_count}\n"
-        )
+       if packet.is_response:
+           
+           
+           lines.append("[DNS Response]")
+       else:
+            lines.append("[DNS Query]")
+
+            lines.append("")
+            lines.append(f"Transaction ID : 0x{packet.transaction_id:04X}")
+            lines.append(f"Domain         : {packet.query_name}")
+            lines.append(f"Query Type     : {dns_record_name(packet.query_type)}")
+            lines.append(f"Answers        : {packet.answer_count}")
+
+            if packet.answers:
+                lines.append("")
+                lines.append("----- Answers -----")
+
+                for answer in packet.answers:
+                    lines.append("")
+                    lines.append(f"Name    : {answer.name}")
+                    lines.append(f"Type    : {dns_record_name(answer.record_type)}")
+                    lines.append(f"TTL     : {answer.ttl}")
+                    lines.append(f"Data    : {answer.data}")
+
+            return "\n".join(lines)
